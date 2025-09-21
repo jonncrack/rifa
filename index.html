@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rueda de la Fortuna</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .main-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .numbers-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .number-item {
+            position: absolute;
+            font-size: 4.5rem;
+            font-weight: bold;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem; /* Esquinas redondeadas */
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            animation: vibrate 0.5s infinite;
+        }
+
+        @keyframes vibrate {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(1px, -1px); }
+            50% { transform: translate(-1px, 1px); }
+            75% { transform: translate(1px, 1px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        #spinBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+            z-index: 10;
+        }
+
+        #spinBtn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.6);
+        }
+
+        #spinBtn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #winner-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            border-radius: 2rem;
+            padding: 2rem;
+            transition: opacity 1s ease-in-out, background-color 0.5s;
+            opacity: 0;
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 90%;
+            text-align: center;
+        }
+        
+        #winner-number-display {
+            font-size: 30vw;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            line-height: 1;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Confetti Animation (Front Layer) */
+        .confetti-piece {
+            position: absolute;
+            opacity: 0;
+            animation: confetti-fall 2s ease-out forwards;
+            z-index: 30; /* Poner el confeti al frente de todo */
+        }
+
+        .confetti-piece.rect {
+            width: 10px;
+            height: 20px;
+        }
+        .confetti-piece.circle {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .confetti-piece.triangle {
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 10px solid;
+        }
+
+        .confetti-piece.red { background-color: #e74c3c; border-bottom-color: #e74c3c; }
+        .confetti-piece.green { background-color: #2ecc71; border-bottom-color: #2ecc71; }
+        .confetti-piece.blue { background-color: #3498db; border-bottom-color: #3498db; }
+        .confetti-piece.yellow { background-color: #f1c40f; border-bottom-color: #f1c40f; }
+        .confetti-piece.purple { background-color: #9b59b6; border-bottom-color: #9b59b6; }
+        .confetti-piece.cyan { background-color: #1abc9c; border-bottom-color: #1abc9c; }
+        .confetti-piece.orange { background-color: #f39c12; border-bottom-color: #f39c12; }
+        .confetti-piece.pink { background-color: #e84393; border-bottom-color: #e84393; }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Confetti Animation (Back Layer) */
+        .confetti-back {
+            position: absolute;
+            opacity: 0;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            animation: confetti-up 3s ease-out forwards;
+            z-index: 5; /* Detrás de todo */
+        }
+        
+        @keyframes confetti-up {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) scale(1);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container" onclick="hideWinner(event)">
+        <div id="numbers-container" class="numbers-container"></div>
+        <div id="winner-box" class="hidden">
+            <div id="winner-number-display"></div>
+        </div>
+        <button id="spinBtn" onclick="spinAndPickWinner()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+        </button>
+    </div>
+
+    <script>
+        const numbersContainer = document.getElementById('numbers-container');
+        const spinBtn = document.getElementById('spinBtn');
+        const winnerBox = document.getElementById('winner-box');
+        const winnerNumberDisplay = document.getElementById('winner-number-display');
+        
+        // Mantener la lista de números disponibles y la lista completa
+        const allNumbers = Array.from({ length: 100 }, (_, i) => i + 1);
+        let availableNumbers = [...allNumbers];
+
+        // Paleta de colores para los números flotantes
+        const colors = ['#f1c40f', '#3498db', '#e74c3c', '#2ecc71', '#9b59b6', '#34495e', '#ecf0f1', '#95a5a6', '#d35400', '#c0392b'];
+
+        let confettiInterval;
+        let backgroundAnimationInterval;
+        let backConfettiInterval;
+        let visibleNumbers = [];
+        let lastColorIndex = -1;
+        
+        // Define las combinaciones de colores contrastantes
+        const colorCombinations = [
+            { bg: '#34495e', text: '#ecf0f1' }, 
+            { bg: '#2ecc71', text: '#1a1a2e' },
+            { bg: '#f1c40f', text: '#1a1a2e' },
+            { bg: '#9b59b6', text: '#ecf0f1' },
+            { bg: '#e74c3c', text: '#ecf0f1' },
+            { bg: '#1abc9c', text: '#1a1a2e' },
+            { bg: '#3498db', text: '#ecf0f1' },
+            { bg: '#d35400', text: '#ecf0f1' },
+            { bg: '#8e44ad', text: '#ecf0f1' },
+            { bg: '#f39c12', text: '#1a1a2e' },
+            { bg: '#ecf0f1', text: '#1a1a2e' },
+            { bg: '#16a085', text: '#ecf0f1' },
+            { bg: '#c0392b', text: '#ecf0f1' },
+        ];
+        
+        // Función para verificar si un nuevo elemento se superpone con los existentes
+        function isOverlapping(newX, newY, newWidth, newHeight) {
+            for (const item of visibleNumbers) {
+                const rect = item.getBoundingClientRect();
+                if (
+                    newX < rect.x + rect.width &&
+                    newX + newWidth > rect.x &&
+                    newY < rect.y + rect.height &&
+                    newY + newHeight > rect.y
+                ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Nuevo enfoque para la animación de números
+        function createSingleNumber() {
+            const numberItem = document.createElement('div');
+            const randomNumber = allNumbers[Math.floor(Math.random() * allNumbers.length)];
+            numberItem.className = 'number-item';
+            numberItem.textContent = randomNumber.toString().padStart(2, '0');
+            
+            let attempts = 0;
+            let randomX, randomY;
+            const newWidth = 100; // Ancho estimado del número
+            const newHeight = 60; // Alto estimado del número
+
+            do {
+                randomX = Math.random() * (window.innerWidth - newWidth);
+                randomY = Math.random() * (window.innerHeight - newHeight);
+                attempts++;
+            } while (isOverlapping(randomX, randomY, newWidth, newHeight) && attempts < 50);
+
+            if (attempts >= 50) return; // Si no encuentra un lugar, no lo crea
+
+            numberItem.style.left = `${randomX}px`;
+            numberItem.style.top = `${randomY}px`;
+            numberItem.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            numbersContainer.appendChild(numberItem);
+            visibleNumbers.push(numberItem);
+            
+            // Fade-in effect
+            setTimeout(() => {
+                numberItem.style.opacity = 1;
+            }, 10); // Pequeño retraso para que la transición CSS se aplique
+
+            // Fade-out effect after a delay
+            setTimeout(() => {
+                numberItem.style.opacity = 0;
+                // Elimina el elemento del DOM después de que la transición de opacidad termine
+                setTimeout(() => {
+                    numberItem.remove();
+                    visibleNumbers = visibleNumbers.filter(item => item !== numberItem);
+                }, 1500); // Duración de la transición de fade-out
+            }, 500); // Duración de la visibilidad del número en pantalla
+        }
+        
+        function startBackgroundAnimation() {
+            backgroundAnimationInterval = setInterval(createSingleNumber, 150);
+        }
+
+        function spinAndPickWinner() {
+            stopConfetti();
+            hideWinner();
+            clearInterval(backgroundAnimationInterval); // Detiene la animación de fondo
+
+            spinBtn.disabled = true;
+            numbersContainer.innerHTML = '';
+            
+            const spinDuration = 4000;
+            const sequenceStartTime = Date.now();
+
+            if (availableNumbers.length === 0) {
+                availableNumbers = [...allNumbers];
+            }
+            
+            // La animación durante el "giro"
+            const spinAnimationInterval = setInterval(() => {
+                if (Date.now() - sequenceStartTime < spinDuration) {
+                    createSingleNumber();
+                } else {
+                    clearInterval(spinAnimationInterval);
+                    
+                    setTimeout(() => {
+                        const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+                        const winner = availableNumbers.splice(randomIndex, 1)[0];
+                        showWinner(winner);
+                        startConfetti();
+                        spinBtn.disabled = false;
+                        startBackgroundAnimation(); // Reinicia la animación de fondo
+                    }, 1000);
+                }
+            }, 150); // Muestra un nuevo número cada 150ms
+        }
+
+        function showWinner(number) {
+            let newColorIndex;
+            do {
+                newColorIndex = Math.floor(Math.random() * colorCombinations.length);
+            } while (newColorIndex === lastColorIndex);
+            
+            const randomCombo = colorCombinations[newColorIndex];
+            lastColorIndex = newColorIndex;
+            
+            winnerBox.style.backgroundColor = randomCombo.bg;
+            winnerNumberDisplay.style.color = randomCombo.text;
+            winnerNumberDisplay.textContent = number.toString().padStart(2, '0');
+            winnerBox.classList.remove('hidden');
+            winnerBox.style.opacity = 1;
+            
+            startBackConfetti();
+        }
+
+        function hideWinner(event) {
+            // Evita que la función se ejecute cuando se hace clic en el botón de giro
+            if (event && event.target.closest('#spinBtn')) {
+                return;
+            }
+            winnerBox.style.opacity = 0;
+            setTimeout(() => winnerBox.classList.add('hidden'), 500);
+            stopConfetti();
+            stopBackConfetti();
+            clearInterval(backgroundAnimationInterval);
+        }
+
+        function createConfettiPiece() {
+            const confetti = document.createElement('div');
+            const shapes = ['rect', 'circle', 'triangle'];
+            const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+            
+            confetti.className = `confetti-piece ${randomShape}`;
+            const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'cyan', 'orange', 'pink'];
+            confetti.classList.add(colors[Math.floor(Math.random() * colors.length)]);
+            
+            confetti.style.left = `${Math.random() * 100}vw`;
+            confetti.style.top = `${-10 - Math.random() * 10}vh`;
+
+            confetti.style.animationDuration = `${Math.random() * 1.5 + 1.5}s`;
+            confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+            
+            document.body.appendChild(confetti);
+
+            confetti.addEventListener('animationend', () => {
+                confetti.remove();
+            });
+        }
+        
+        function startConfetti() {
+            if (confettiInterval) {
+                clearInterval(confettiInterval);
+            }
+            confettiInterval = setInterval(createConfettiPiece, 50);
+        }
+        
+        function stopConfetti() {
+            if (confettiInterval) {
+                clearInterval(confettiInterval);
+                confettiInterval = null;
+            }
+        }
+        
+        function createBackConfettiPiece() {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti-back';
+            const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'cyan', 'orange', 'pink'];
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            confetti.style.left = `${50 - 15 + Math.random() * 30}vw`; // En la parte central
+            confetti.style.top = `${50 + Math.random() * 10}vh`; // Desde el centro hacia arriba
+            
+            document.body.appendChild(confetti);
+
+            confetti.addEventListener('animationend', () => {
+                confetti.remove();
+            });
+        }
+        
+        function startBackConfetti() {
+            if (backConfettiInterval) {
+                clearInterval(backConfettiInterval);
+            }
+            backConfettiInterval = setInterval(createBackConfettiPiece, 100);
+        }
+
+        function stopBackConfetti() {
+            if (backConfettiInterval) {
+                clearInterval(backConfettiInterval);
+                backConfettiInterval = null;
+            }
+        }
+    </script>
+</body>
+</html>
