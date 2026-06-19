@@ -2,202 +2,224 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rueda de la Fortuna</title>
+    <!-- Cargamos Tailwind CSS para estilos rápidos y responsivos -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1a1a2e;
+            background: radial-gradient(circle at center, #1b1b3a 0%, #080811 100%);
             color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100dvh;
+            height: 100dvh;
             overflow: hidden;
-            flex-direction: column;
             position: relative;
         }
 
+        /* Contenedor principal adaptado al alto de pantalla dinámico en móviles (dvh) */
         .main-container {
             position: relative;
             width: 100%;
-            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
+            padding: 1.25rem;
+            box-sizing: border-box;
         }
 
-        .numbers-container {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
+        /* Elemento de número flotante con escala responsiva fluida */
         .number-item {
             position: absolute;
-            font-size: 4.5rem;
-            font-weight: bold;
+            font-size: clamp(1.8rem, 6vw, 3.5rem);
+            font-weight: 800;
             color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.75rem; /* Esquinas redondeadas */
-            background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px);
+            padding: 0.35rem 0.85rem;
+            border-radius: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             opacity: 0;
-            transition: opacity 1.5s ease-in-out;
-            animation: vibrate 0.5s infinite;
+            transition: opacity 1.2s ease-in-out, transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: vibrate 0.6s infinite alternate;
+            will-change: transform, opacity, left, top;
         }
 
+        /* Vibración sutil para dar la sensación de tómbola activa */
         @keyframes vibrate {
-            0% { transform: translate(0, 0); }
-            25% { transform: translate(1px, -1px); }
-            50% { transform: translate(-1px, 1px); }
-            75% { transform: translate(1px, 1px); }
-            100% { transform: translate(0, 0); }
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(1px, -1px) scale(1.02); }
+            100% { transform: translate(-1px, 1px) scale(0.98); }
         }
 
+        /* Botón de giro responsivo optimizado para pulgares */
         #spinBtn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: linear-gradient(145deg, #2ecc71, #27ae60);
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
             color: white;
-            padding: 1.5rem;
+            padding: 1.25rem;
             border-radius: 9999px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
-            z-index: 10;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4);
+            z-index: 40;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            touch-action: manipulation;
         }
 
-        #spinBtn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.6);
+        #spinBtn:active {
+            transform: scale(0.9);
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
         }
 
         #spinBtn:disabled {
-            background: #6c757d;
+            background: #4a5568;
+            border-color: transparent;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+            opacity: 0.6;
         }
 
+        /* Modal del ganador ultra adaptivo y elegante */
         #winner-box {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 20;
-            border-radius: 2rem;
-            padding: 2rem;
-            transition: opacity 1s ease-in-out, background-color 0.5s;
+            transform: translate(-50%, -50%) scale(0.9);
+            z-index: 50;
+            border-radius: 2.5rem;
+            padding: clamp(1.5rem, 5vw, 3rem);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             opacity: 0;
-            box-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 55px rgba(255, 255, 255, 0.12);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            max-width: 90%;
+            width: 85%;
+            max-width: 420px;
             text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        #winner-box.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
         }
         
         #winner-number-display {
-            font-size: 30vw;
-            font-weight: bold;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-            line-height: 1;
+            font-size: clamp(6.5rem, 25vw, 11rem);
+            font-weight: 800;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            line-height: 0.95;
+            letter-spacing: -0.05em;
         }
 
-        .hidden {
-            display: none;
-        }
-
-        /* Confetti Animation (Front Layer) */
+        /* Capas de animación de confeti en primer plano */
         .confetti-piece {
             position: absolute;
             opacity: 0;
-            animation: confetti-fall 2s ease-out forwards;
-            z-index: 30; /* Poner el confeti al frente de todo */
+            animation: confetti-fall 2.2s ease-out forwards;
+            z-index: 60;
+            pointer-events: none;
         }
 
-        .confetti-piece.rect {
-            width: 10px;
-            height: 20px;
-        }
-        .confetti-piece.circle {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
+        .confetti-piece.rect { width: 8px; height: 16px; }
+        .confetti-piece.circle { width: 8px; height: 8px; border-radius: 50%; }
         .confetti-piece.triangle {
-            width: 0;
-            height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-bottom: 10px solid;
+            width: 0; height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 8px solid;
         }
 
-        .confetti-piece.red { background-color: #e74c3c; border-bottom-color: #e74c3c; }
-        .confetti-piece.green { background-color: #2ecc71; border-bottom-color: #2ecc71; }
-        .confetti-piece.blue { background-color: #3498db; border-bottom-color: #3498db; }
-        .confetti-piece.yellow { background-color: #f1c40f; border-bottom-color: #f1c40f; }
+        .confetti-piece.red { background-color: #ff4757; border-bottom-color: #ff4757; }
+        .confetti-piece.green { background-color: #2ed573; border-bottom-color: #2ed573; }
+        .confetti-piece.blue { background-color: #1e90ff; border-bottom-color: #1e90ff; }
+        .confetti-piece.yellow { background-color: #ffa502; border-bottom-color: #ffa502; }
         .confetti-piece.purple { background-color: #9b59b6; border-bottom-color: #9b59b6; }
-        .confetti-piece.cyan { background-color: #1abc9c; border-bottom-color: #1abc9c; }
-        .confetti-piece.orange { background-color: #f39c12; border-bottom-color: #f39c12; }
-        .confetti-piece.pink { background-color: #e84393; border-bottom-color: #e84393; }
+        .confetti-piece.pink { background-color: #ff6b81; border-bottom-color: #ff6b81; }
 
         @keyframes confetti-fall {
-            0% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
+            0% { transform: translateY(-5vh) rotate(0deg) translateX(0); opacity: 1; }
+            35% { transform: translateY(30vh) rotate(180deg) translateX(15px); }
+            70% { transform: translateY(65vh) rotate(360deg) translateX(-15px); }
+            100% { transform: translateY(105vh) rotate(720deg) translateX(5px); opacity: 0; }
         }
         
-        /* Confetti Animation (Back Layer) */
+        /* Capa de confeti trasero de explosión */
         .confetti-back {
             position: absolute;
             opacity: 0;
-            width: 5px;
-            height: 5px;
+            width: 4px;
+            height: 4px;
             border-radius: 50%;
-            animation: confetti-up 3s ease-out forwards;
-            z-index: 5; /* Detrás de todo */
+            animation: confetti-up 2.8s ease-out forwards;
+            z-index: 5;
+            pointer-events: none;
         }
         
         @keyframes confetti-up {
-            0% {
-                transform: translateY(0) scale(0.5);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100vh) scale(1);
-                opacity: 0;
-            }
+            0% { transform: translateY(10vh) scale(0.5); opacity: 1; }
+            100% { transform: translateY(-105vh) scale(1.2); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
     <div class="main-container" onclick="hideWinner(event)">
-        <div id="numbers-container" class="numbers-container"></div>
-        <div id="winner-box" class="hidden">
-            <div id="winner-number-display"></div>
+        <!-- Cabecera estadística y botón de reinicio -->
+        <div class="w-full flex justify-between items-center z-30 pointer-events-auto">
+            <div class="bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-2xl flex flex-col shadow-lg">
+                <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Números restantes</span>
+                <span id="counter-display" class="text-xl font-extrabold text-green-400">100/100</span>
+            </div>
+            
+            <button id="resetBtn" onclick="resetRaffle(event)" class="bg-white/5 hover:bg-white/10 active:scale-95 transition-all border border-white/10 p-2.5 rounded-2xl flex items-center justify-center shadow-lg" title="Reiniciar Sorteo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+            </button>
         </div>
-        <button id="spinBtn" onclick="spinAndPickWinner()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+
+        <!-- Contenedor para números que flotan en el fondo -->
+        <div id="numbers-container" class="absolute inset-0 w-full h-full z-10 pointer-events-none"></div>
+
+        <!-- Caja del Ganador (Diseño de vidrio interactivo) -->
+        <div id="winner-box" class="pointer-events-none">
+            <span class="text-xs uppercase tracking-widest text-white/60 font-semibold mb-1">¡Número Ganador!</span>
+            <div id="winner-number-display">--</div>
+            <p class="text-sm text-white/70 mt-3 font-medium bg-black/20 py-1.5 px-4 rounded-full border border-white/5">Toca la pantalla para continuar</p>
+        </div>
+
+        <!-- Alerta integrada personalizada para reiniciar si se acaban los números -->
+        <div id="empty-alert" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900/95 border border-red-500/30 p-6 rounded-3xl z-50 text-center w-[85%] max-w-xs backdrop-blur-lg shadow-2xl">
+            <svg class="mx-auto text-red-400 mb-2" xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-        </button>
+            <h3 class="text-lg font-bold text-white mb-1">No quedan números</h3>
+            <p class="text-sm text-gray-400 mb-4">¿Deseas reiniciar la tómbola con todos los números nuevamente?</p>
+            <button onclick="confirmResetFromAlert()" class="w-full py-2.5 bg-green-500 hover:bg-green-600 rounded-xl font-semibold text-white transition-all active:scale-95">Reiniciar Sorteo</button>
+        </div>
+
+        <!-- Botón de Giro en esquina inferior/centro en móviles -->
+        <div class="w-full flex justify-end md:justify-end justify-center z-30 pb-4 md:pb-0 pointer-events-auto">
+            <button id="spinBtn" onclick="spinAndPickWinner()" aria-label="Girar rueda">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play fill-current">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <script>
@@ -205,13 +227,15 @@
         const spinBtn = document.getElementById('spinBtn');
         const winnerBox = document.getElementById('winner-box');
         const winnerNumberDisplay = document.getElementById('winner-number-display');
+        const counterDisplay = document.getElementById('counter-display');
+        const emptyAlert = document.getElementById('empty-alert');
         
-        // Mantener la lista de números disponibles y la lista completa
+        // Rango de números para el sorteo
         const allNumbers = Array.from({ length: 100 }, (_, i) => i + 1);
         let availableNumbers = [...allNumbers];
 
-        // Paleta de colores para los números flotantes
-        const colors = ['#f1c40f', '#3498db', '#e74c3c', '#2ecc71', '#9b59b6', '#34495e', '#ecf0f1', '#95a5a6', '#d35400', '#c0392b'];
+        // Colores vibrantes para los números
+        const colors = ['#f1c40f', '#3498db', '#e74c3c', '#2ecc71', '#9b59b6', '#ecf0f1', '#e67e22', '#1abc9c', '#fd79a8', '#00cec9'];
 
         let confettiInterval;
         let backgroundAnimationInterval;
@@ -219,32 +243,43 @@
         let visibleNumbers = [];
         let lastColorIndex = -1;
         
-        // Define las combinaciones de colores contrastantes
+        // Combinaciones de color para la caja de resultados
         const colorCombinations = [
-            { bg: '#34495e', text: '#ecf0f1' }, 
-            { bg: '#2ecc71', text: '#1a1a2e' },
-            { bg: '#f1c40f', text: '#1a1a2e' },
-            { bg: '#9b59b6', text: '#ecf0f1' },
-            { bg: '#e74c3c', text: '#ecf0f1' },
-            { bg: '#1abc9c', text: '#1a1a2e' },
-            { bg: '#3498db', text: '#ecf0f1' },
-            { bg: '#d35400', text: '#ecf0f1' },
-            { bg: '#8e44ad', text: '#ecf0f1' },
+            { bg: '#2c3e50', text: '#ecf0f1' }, 
+            { bg: '#27ae60', text: '#ffffff' },
             { bg: '#f39c12', text: '#1a1a2e' },
-            { bg: '#ecf0f1', text: '#1a1a2e' },
-            { bg: '#16a085', text: '#ecf0f1' },
-            { bg: '#c0392b', text: '#ecf0f1' },
+            { bg: '#8e44ad', text: '#ffffff' },
+            { bg: '#c0392b', text: '#ffffff' },
+            { bg: '#16a085', text: '#ffffff' },
+            { bg: '#2980b9', text: '#ffffff' },
+            { bg: '#d35400', text: '#ffffff' },
+            { bg: '#e84393', text: '#ffffff' },
+            { bg: '#00b894', text: '#ffffff' },
         ];
         
-        // Función para verificar si un nuevo elemento se superpone con los existentes
+        // Actualiza el marcador
+        function updateCounter() {
+            counterDisplay.textContent = `${availableNumbers.length}/${allNumbers.length}`;
+        }
+
+        // Obtiene las dimensiones de posicionamiento según el tamaño de la pantalla
+        function getResponsiveDimensions() {
+            const isMobile = window.innerWidth < 768;
+            return {
+                width: isMobile ? 70 : 120, 
+                height: isMobile ? 45 : 75  
+            };
+        }
+
+        // Verifica colisiones para evitar que los números flotantes se amontonen
         function isOverlapping(newX, newY, newWidth, newHeight) {
             for (const item of visibleNumbers) {
                 const rect = item.getBoundingClientRect();
                 if (
-                    newX < rect.x + rect.width &&
-                    newX + newWidth > rect.x &&
-                    newY < rect.y + rect.height &&
-                    newY + newHeight > rect.y
+                    newX < rect.left + rect.width &&
+                    newX + newWidth > rect.left &&
+                    newY < rect.top + rect.height &&
+                    newY + newHeight > rect.top
                 ) {
                     return true;
                 }
@@ -252,7 +287,7 @@
             return false;
         }
 
-        // Nuevo enfoque para la animación de números
+        // Crea un número aleatorio flotando en una zona segura
         function createSingleNumber() {
             const numberItem = document.createElement('div');
             const randomNumber = allNumbers[Math.floor(Math.random() * allNumbers.length)];
@@ -261,16 +296,19 @@
             
             let attempts = 0;
             let randomX, randomY;
-            const newWidth = 100; // Ancho estimado del número
-            const newHeight = 60; // Alto estimado del número
+            const dims = getResponsiveDimensions();
+
+            // Márgenes para evitar spawn sobre cabecera o botones
+            const paddingX = 20;
+            const paddingY = 80; 
 
             do {
-                randomX = Math.random() * (window.innerWidth - newWidth);
-                randomY = Math.random() * (window.innerHeight - newHeight);
+                randomX = paddingX + Math.random() * (window.innerWidth - dims.width - (paddingX * 2));
+                randomY = paddingY + Math.random() * (window.innerHeight - dims.height - (paddingY * 2));
                 attempts++;
-            } while (isOverlapping(randomX, randomY, newWidth, newHeight) && attempts < 50);
+            } while (isOverlapping(randomX, randomY, dims.width, dims.height) && attempts < 40);
 
-            if (attempts >= 50) return; // Si no encuentra un lugar, no lo crea
+            if (attempts >= 40) return; 
 
             numberItem.style.left = `${randomX}px`;
             numberItem.style.top = `${randomY}px`;
@@ -279,42 +317,47 @@
             numbersContainer.appendChild(numberItem);
             visibleNumbers.push(numberItem);
             
-            // Fade-in effect
+            // Entrada suave
             setTimeout(() => {
-                numberItem.style.opacity = 1;
-            }, 10); // Pequeño retraso para que la transición CSS se aplique
+                numberItem.style.opacity = '1';
+            }, 50);
 
-            // Fade-out effect after a delay
+            // Transición de salida controlada
             setTimeout(() => {
-                numberItem.style.opacity = 0;
-                // Elimina el elemento del DOM después de que la transición de opacidad termine
+                numberItem.style.opacity = '0';
                 setTimeout(() => {
                     numberItem.remove();
                     visibleNumbers = visibleNumbers.filter(item => item !== numberItem);
-                }, 1500); // Duración de la transición de fade-out
-            }, 500); // Duración de la visibilidad del número en pantalla
+                }, 1200);
+            }, 700);
         }
         
+        // Animación fluida de fondo optimizada para pantallas pequeñas
         function startBackgroundAnimation() {
-            backgroundAnimationInterval = setInterval(createSingleNumber, 150);
+            if (backgroundAnimationInterval) clearInterval(backgroundAnimationInterval);
+            const intervalTime = window.innerWidth < 768 ? 200 : 140;
+            backgroundAnimationInterval = setInterval(createSingleNumber, intervalTime);
         }
 
+        // Realiza el proceso de sorteo acelerado
         function spinAndPickWinner() {
+            if (availableNumbers.length === 0) {
+                showEmptyAlert();
+                return;
+            }
+
             stopConfetti();
             hideWinner();
-            clearInterval(backgroundAnimationInterval); // Detiene la animación de fondo
+            clearInterval(backgroundAnimationInterval);
 
             spinBtn.disabled = true;
             numbersContainer.innerHTML = '';
+            visibleNumbers = [];
             
-            const spinDuration = 4000;
+            const spinDuration = 3200;
             const sequenceStartTime = Date.now();
-
-            if (availableNumbers.length === 0) {
-                availableNumbers = [...allNumbers];
-            }
             
-            // La animación durante el "giro"
+            const intervalTime = window.innerWidth < 768 ? 160 : 100;
             const spinAnimationInterval = setInterval(() => {
                 if (Date.now() - sequenceStartTime < spinDuration) {
                     createSingleNumber();
@@ -324,15 +367,18 @@
                     setTimeout(() => {
                         const randomIndex = Math.floor(Math.random() * availableNumbers.length);
                         const winner = availableNumbers.splice(randomIndex, 1)[0];
+                        
                         showWinner(winner);
+                        updateCounter();
                         startConfetti();
                         spinBtn.disabled = false;
-                        startBackgroundAnimation(); // Reinicia la animación de fondo
-                    }, 1000);
+                        startBackgroundAnimation();
+                    }, 600);
                 }
-            }, 150); // Muestra un nuevo número cada 150ms
+            }, intervalTime);
         }
 
+        // Muestra la ventana de ganador con colores contrastantes
         function showWinner(number) {
             let newColorIndex;
             do {
@@ -345,38 +391,59 @@
             winnerBox.style.backgroundColor = randomCombo.bg;
             winnerNumberDisplay.style.color = randomCombo.text;
             winnerNumberDisplay.textContent = number.toString().padStart(2, '0');
-            winnerBox.classList.remove('hidden');
-            winnerBox.style.opacity = 1;
             
+            winnerBox.classList.add('active');
             startBackConfetti();
         }
 
+        // Oculta el panel ganador al hacer tap fuera
         function hideWinner(event) {
-            // Evita que la función se ejecute cuando se hace clic en el botón de giro
-            if (event && event.target.closest('#spinBtn')) {
+            if (event && (event.target.closest('#spinBtn') || event.target.closest('#resetBtn') || event.target.closest('#empty-alert'))) {
                 return;
             }
-            winnerBox.style.opacity = 0;
-            setTimeout(() => winnerBox.classList.add('hidden'), 500);
+            winnerBox.classList.remove('active');
             stopConfetti();
             stopBackConfetti();
-            clearInterval(backgroundAnimationInterval);
         }
 
+        // Reinicia la tómbola
+        function resetRaffle(event) {
+            if (event) event.stopPropagation();
+            availableNumbers = [...allNumbers];
+            updateCounter();
+            hideWinner();
+            hideEmptyAlert();
+            numbersContainer.innerHTML = '';
+            visibleNumbers = [];
+        }
+
+        function showEmptyAlert() {
+            emptyAlert.classList.remove('hidden');
+        }
+
+        function hideEmptyAlert() {
+            emptyAlert.classList.add('hidden');
+        }
+
+        function confirmResetFromAlert() {
+            resetRaffle();
+        }
+
+        /* Generador de Confeti Frontal */
         function createConfettiPiece() {
             const confetti = document.createElement('div');
             const shapes = ['rect', 'circle', 'triangle'];
             const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
             
             confetti.className = `confetti-piece ${randomShape}`;
-            const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'cyan', 'orange', 'pink'];
-            confetti.classList.add(colors[Math.floor(Math.random() * colors.length)]);
+            const colorsList = ['red', 'green', 'blue', 'yellow', 'purple', 'pink'];
+            confetti.classList.add(colorsList[Math.floor(Math.random() * colorsList.length)]);
             
             confetti.style.left = `${Math.random() * 100}vw`;
-            confetti.style.top = `${-10 - Math.random() * 10}vh`;
+            confetti.style.top = `${-5 - Math.random() * 5}vh`;
 
-            confetti.style.animationDuration = `${Math.random() * 1.5 + 1.5}s`;
-            confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+            confetti.style.animationDuration = `${Math.random() * 1.2 + 1.2}s`;
+            confetti.style.animationDelay = `${Math.random() * 0.3}s`;
             
             document.body.appendChild(confetti);
 
@@ -386,10 +453,8 @@
         }
         
         function startConfetti() {
-            if (confettiInterval) {
-                clearInterval(confettiInterval);
-            }
-            confettiInterval = setInterval(createConfettiPiece, 50);
+            if (confettiInterval) clearInterval(confettiInterval);
+            confettiInterval = setInterval(createConfettiPiece, window.innerWidth < 768 ? 80 : 40);
         }
         
         function stopConfetti() {
@@ -399,14 +464,15 @@
             }
         }
         
+        /* Generador de Confeti de Explosión Central */
         function createBackConfettiPiece() {
             const confetti = document.createElement('div');
             confetti.className = 'confetti-back';
-            const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'cyan', 'orange', 'pink'];
-            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            const colorsList = ['red', 'green', 'blue', 'yellow', 'purple', 'pink'];
+            confetti.style.backgroundColor = colorsList[Math.floor(Math.random() * colorsList.length)];
             
-            confetti.style.left = `${50 - 15 + Math.random() * 30}vw`; // En la parte central
-            confetti.style.top = `${50 + Math.random() * 10}vh`; // Desde el centro hacia arriba
+            confetti.style.left = `${50 - 10 + Math.random() * 20}vw`;
+            confetti.style.top = `${50 + Math.random() * 8}vh`;
             
             document.body.appendChild(confetti);
 
@@ -416,10 +482,8 @@
         }
         
         function startBackConfetti() {
-            if (backConfettiInterval) {
-                clearInterval(backConfettiInterval);
-            }
-            backConfettiInterval = setInterval(createBackConfettiPiece, 100);
+            if (backConfettiInterval) clearInterval(backConfettiInterval);
+            backConfettiInterval = setInterval(createBackConfettiPiece, 80);
         }
 
         function stopBackConfetti() {
@@ -427,6 +491,18 @@
                 clearInterval(backConfettiInterval);
                 backConfettiInterval = null;
             }
+        }
+
+        // Limpieza inteligente si el dispositivo cambia de orientación
+        window.addEventListener('resize', () => {
+            numbersContainer.innerHTML = '';
+            visibleNumbers = [];
+        });
+
+        // Inicio dinámico de la animación al cargar la página
+        window.onload = function() {
+            updateCounter();
+            startBackgroundAnimation();
         }
     </script>
 </body>
