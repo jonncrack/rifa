@@ -65,7 +65,7 @@
             padding: 1.25rem;
             border-radius: 9999px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4);
             z-index: 40;
             border: 2px solid rgba(255, 255, 255, 0.2);
@@ -86,7 +86,14 @@
             opacity: 0.6;
         }
 
-        /* Modal del ganador ultra adaptivo y elegante */
+        /* Clase explícita de alta especificidad para ocultar el botón */
+        #spinBtn.hidden-btn {
+            transform: scale(0) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* Modal del ganador ultra adaptativo y elegante */
         #winner-box {
             position: absolute;
             top: 50%;
@@ -178,14 +185,27 @@
 <body>
 
     <div class="main-container" onclick="hideWinner(event)">
-        <!-- Cabecera estadística y botón de reinicio -->
-        <div class="w-full flex justify-between items-center z-30 pointer-events-auto">
+        <!-- Cabecera estadística y controles superiores -->
+        <div class="w-full flex justify-between items-center z-30 pointer-events-auto gap-3">
+            <!-- Estadísticas de números restantes -->
             <div class="bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-2xl flex flex-col shadow-lg">
-                <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Números restantes</span>
+                <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Restantes</span>
                 <span id="counter-display" class="text-xl font-extrabold text-green-400">100/100</span>
             </div>
+
+            <!-- Selector de cantidad de números competitivos -->
+            <div class="bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-2xl flex flex-col shadow-lg min-w-[100px]">
+                <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Rango</span>
+                <select id="range-selector" onchange="updateNumberRange(this.value)" class="bg-transparent text-white font-extrabold text-lg outline-none cursor-pointer focus:ring-0">
+                    <option value="10" class="bg-slate-900 text-white">10</option>
+                    <option value="25" class="bg-slate-900 text-white">25</option>
+                    <option value="50" class="bg-slate-900 text-white">50</option>
+                    <option value="100" class="bg-slate-900 text-white" selected>100</option>
+                </select>
+            </div>
             
-            <button id="resetBtn" onclick="resetRaffle(event)" class="bg-white/5 hover:bg-white/10 active:scale-95 transition-all border border-white/10 p-2.5 rounded-2xl flex items-center justify-center shadow-lg" title="Reiniciar Sorteo">
+            <!-- Botón de reinicio rápido -->
+            <button id="resetBtn" onclick="resetRaffle(event)" class="bg-white/5 hover:bg-white/10 active:scale-95 transition-all border border-white/10 p-3 rounded-2xl flex items-center justify-center shadow-lg h-[52px]" title="Reiniciar Sorteo">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300">
                     <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
                 </svg>
@@ -229,9 +249,11 @@
         const winnerNumberDisplay = document.getElementById('winner-number-display');
         const counterDisplay = document.getElementById('counter-display');
         const emptyAlert = document.getElementById('empty-alert');
+        const rangeSelector = document.getElementById('range-selector');
         
-        // Rango de números para el sorteo
-        const allNumbers = Array.from({ length: 100 }, (_, i) => i + 1);
+        // Rango de números inicial
+        let maxNumberRange = 100;
+        let allNumbers = Array.from({ length: maxNumberRange }, (_, i) => i + 1);
         let availableNumbers = [...allNumbers];
 
         // Colores vibrantes para los números
@@ -257,9 +279,16 @@
             { bg: '#00b894', text: '#ffffff' },
         ];
         
-        // Actualiza el marcador
+        // Actualiza el marcador superior de cantidad
         function updateCounter() {
             counterDisplay.textContent = `${availableNumbers.length}/${allNumbers.length}`;
+        }
+
+        // Cambiar el rango de números
+        function updateNumberRange(rangeValue) {
+            maxNumberRange = parseInt(rangeValue);
+            allNumbers = Array.from({ length: maxNumberRange }, (_, i) => i + 1);
+            resetRaffle();
         }
 
         // Obtiene las dimensiones de posicionamiento según el tamaño de la pantalla
@@ -287,7 +316,7 @@
             return false;
         }
 
-        // Crea un número aleatorio flotando en una zona segura
+        // Crea un número flotando en una zona segura
         function createSingleNumber() {
             const numberItem = document.createElement('div');
             const randomNumber = allNumbers[Math.floor(Math.random() * allNumbers.length)];
@@ -339,7 +368,6 @@
             backgroundAnimationInterval = setInterval(createSingleNumber, intervalTime);
         }
 
-        // Realiza el proceso de sorteo acelerado
         function spinAndPickWinner() {
             if (availableNumbers.length === 0) {
                 showEmptyAlert();
@@ -347,14 +375,18 @@
             }
 
             stopConfetti();
-            hideWinner();
+            
+            // Ocultar botón de juego usando la clase específica de alta especificidad
+            spinBtn.classList.add('hidden-btn');
+            
             clearInterval(backgroundAnimationInterval);
 
-            spinBtn.disabled = true;
             numbersContainer.innerHTML = '';
             visibleNumbers = [];
             
-            const spinDuration = 3200;
+            // REQUERIMIENTO: Duración total exacta de 3 segundos (3000ms)
+            // Hacemos el giro activo de 2.6 segundos y dejamos 0.4 segundos de transición limpia
+            const spinDuration = 2600; 
             const sequenceStartTime = Date.now();
             
             const intervalTime = window.innerWidth < 768 ? 160 : 100;
@@ -364,16 +396,27 @@
                 } else {
                     clearInterval(spinAnimationInterval);
                     
+                    // SOLUCIÓN AL "DRAG": Forzamos a que todos los números que quedan en pantalla se desvanezcan al instante
+                    const activeItems = numbersContainer.querySelectorAll('.number-item');
+                    activeItems.forEach(item => {
+                        item.style.transition = 'opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                        item.style.opacity = '0';
+                        item.style.transform = 'scale(0.5)';
+                    });
+                    
+                    // Mostramos el ganador exactamente al cumplirse el delay de 400ms (2600ms + 400ms = 3.0s exactos)
                     setTimeout(() => {
+                        numbersContainer.innerHTML = '';
+                        visibleNumbers = [];
+                        
                         const randomIndex = Math.floor(Math.random() * availableNumbers.length);
                         const winner = availableNumbers.splice(randomIndex, 1)[0];
                         
                         showWinner(winner);
                         updateCounter();
                         startConfetti();
-                        spinBtn.disabled = false;
                         startBackgroundAnimation();
-                    }, 600);
+                    }, 400); 
                 }
             }, intervalTime);
         }
@@ -396,14 +439,19 @@
             startBackConfetti();
         }
 
-        // Oculta el panel ganador al hacer tap fuera
+        // Oculta el panel ganador al hacer tap fuera y reaparece el botón
         function hideWinner(event) {
-            if (event && (event.target.closest('#spinBtn') || event.target.closest('#resetBtn') || event.target.closest('#empty-alert'))) {
+            // No interactuar si se presiona el selector, botones de control o alertas
+            if (event && (event.target.closest('#resetBtn') || event.target.closest('#empty-alert') || event.target.closest('#range-selector'))) {
                 return;
             }
+            
             winnerBox.classList.remove('active');
             stopConfetti();
             stopBackConfetti();
+
+            // Hacer reaparecer el botón cuando se toca la pantalla
+            spinBtn.classList.remove('hidden-btn');
         }
 
         // Reinicia la tómbola
@@ -411,7 +459,13 @@
             if (event) event.stopPropagation();
             availableNumbers = [...allNumbers];
             updateCounter();
-            hideWinner();
+            
+            // Reestablecer modal y asegurar que el botón vuelva a estar visible
+            winnerBox.classList.remove('active');
+            spinBtn.classList.remove('hidden-btn');
+            
+            stopConfetti();
+            stopBackConfetti();
             hideEmptyAlert();
             numbersContainer.innerHTML = '';
             visibleNumbers = [];
@@ -493,7 +547,7 @@
             }
         }
 
-        // Limpieza inteligente si el dispositivo cambia de orientación
+        // Limpieza inteligente si el dispositivo cambia de orientación o tamaño
         window.addEventListener('resize', () => {
             numbersContainer.innerHTML = '';
             visibleNumbers = [];
